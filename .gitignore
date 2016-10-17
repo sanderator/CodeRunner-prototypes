@@ -1,0 +1,14 @@
+build/
+*.class
+.classpath
+*.jar
+.~lock*
+.MF/
+*.pdf
+.project
+*.pyc
+__pycache__/
+.pydevproject
+*.sublime-*
+.settings
+*.tgz
