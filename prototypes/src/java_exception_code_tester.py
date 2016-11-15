@@ -96,7 +96,7 @@ from java_code_tester import *
 
 
 def assemble_tester(student_answer, support_files,
-            testcode, xception, ncoding='utf-8'):
+                    testcode, xception, ncoding='utf-8'):
     '''Smushes student answer and support files together and
     writes it out as one file.
     The resultant code goes into an arbitrary package because

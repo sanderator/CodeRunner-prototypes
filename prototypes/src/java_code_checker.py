@@ -32,6 +32,31 @@ class CodeOutOfSpecException(Exception):
 # various code features
 #
 
+def check_for_author(student_answer, existing_author=None):
+    '''Checks for an author tag in the javadoc comments. With an existing
+    author argument, checks that another author has been added.
+    This is in case the student was to modify existing code with an
+    existing author.
+    '''
+    # pattern = re.compile(r'''
+    #         @author     # Javadoc tag
+    #         \S*?\s+     # maybe some other stuff and at least one space
+    #         (?!%s)      # name that should not be considered
+    #         \w+?        # student name added as author
+    #         ''' % existing_author, re.VERBOSE)
+    classes = student_answer.count('class')
+    authors = student_answer.count('@author')
+    existing_authors = student_answer.count(existing_author)  \
+        if existing_author else 0
+    # print(str(authors) + ' @authors')
+    # print(str(existing_authors) + ' existing authors')
+    if classes > authors or existing_authors >= authors:
+        raise CodeOutOfSpecException('''
+    Your code may well execute...but:
+    Your code is out of spec - doesn't credit all authors.
+    ''')
+
+
 def check_for_extends(student_answer, subclass, superclass):
     '''Checks for 'class subclass extends superclass'.
     If that's not the case, then raises an error and
@@ -68,3 +93,23 @@ def check_for_enum(student_answer, enumb):
     Your code is out of spec - you were supposed to define
         enum %s.
     ''' % enumb)
+
+
+def check_for_enum_in_switch(student_answer, enumb_const):
+    '''Verifies that the appropriate enum constant is used in a switch
+    case statement.
+    If that's not the case, then raises an error and
+    stops further testing.
+    '''
+    pattern = re.compile('''
+            switch.*?       # keyword and stuff
+            case\s+         # keyword and spaces
+            %s:             # enum constant and keymark
+            ''' % enumb_const, re.DOTALL | re.VERBOSE)
+    match = pattern.search(student_answer)
+    if not match:
+        raise CodeOutOfSpecException('''
+    Your code may well execute...but:
+    Your code is out of spec - you were supposed to use
+        case %s:.
+    ''' % enumb_const)
