@@ -243,7 +243,7 @@ Your code is out of spec - you were supposed to define
         print('%s extends %s' % (subclass, superclass))
 
 
-def check_for_enum(student_answer, enumb):
+def check_for_enum(student_answer, enum):
     '''Verifies that the appropriate enum is declared.
     If that's not the case, then raises an error and
     stops further testing.
@@ -251,19 +251,19 @@ def check_for_enum(student_answer, enumb):
     pattern = re.compile('''
         enum\s+     # keyword and spaces
         %s          # enum name
-        ''' % enumb, re.VERBOSE)
+        ''' % enum, re.VERBOSE)
     match = pattern.search(student_answer)
     if not match:
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
 Your code is out of spec - you were supposed to define
     enum %s.
-''' % enumb)
+''' % enum)
     else:
         print('Specified enum declared')
 
 
-def check_for_enum_in_switch(student_answer, enumb_const):
+def check_for_enum_in_switch(student_answer, enum_const):
     '''Verifies that the appropriate enum constant is used in a switch
     case statement.
     If that's not the case, then raises an error and
@@ -273,13 +273,13 @@ def check_for_enum_in_switch(student_answer, enumb_const):
         switch.*?       # keyword and stuff
         case\s+         # keyword and spaces
         %s:             # enum constant and keymark
-        ''' % enumb_const, re.DOTALL | re.VERBOSE)
+        ''' % enum_const, re.DOTALL | re.VERBOSE)
     match = pattern.search(student_answer)
     if not match:
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
 Your code is out of spec - you were supposed to use
     case %s:.
-''' % enumb_const)
+''' % enum_const)
     else:
         print('Switch uses enum constants')
