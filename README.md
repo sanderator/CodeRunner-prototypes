@@ -1,5 +1,5 @@
 # CodeRunner-prototypes
-Some prototypes for CodeRunner
+Some prototypes for CodeRunner (http://coderunner.org.nz/), a nifty plugin for executing student code in Moodle.
 
 Prototype template for static and / or dynamic checking of student answer Java code specifications.
 The file _java_code_checkr.py_ should be included as a CodeRunner _Support file_ in a prototype,
