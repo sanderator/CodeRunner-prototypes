@@ -66,6 +66,8 @@ def _remove_cruft(student_answer):
         .replace('public class ', 'class ') \
         .replace('public abstract class ', 'abstract class ') \
         .replace('abstract public class ', 'abstract class ') \
+        .replace('public final class ', 'final class ') \
+        .replace('final public class ', 'final class ') \
         .replace('public interface ', 'interface ') \
         .replace('public enum ', 'enum ') \
         .replace('package ', '// package ') \
@@ -84,7 +86,10 @@ def _add_cruft(student_answer, import_static=None):
     return """
 package %s;
 
+import java.io.*;
+import java.nio.file.*;
 import java.util.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 // if you need a static import, it'll be put here
@@ -162,8 +167,9 @@ def compile_and_run(student_answer, testcode,
     student_answer = _assemble_student_answer(student_answer, import_static)
     support_files = _assemble_support_files(ncoding)
     _assemble_tester(student_answer, testcode, support_files, xception)
-    if (subprocess.call(['javac', '-d', '.', '-encoding', ncoding, _testfile])
-            or subprocess.call(['java', _testclass])):
+    if (subprocess.call(
+            ['javac', '-d', '.', '-encoding', ncoding, _testfile]) or
+            subprocess.call(['java', _testclass])):
         print('** Further testing aborted **', file=sys.stderr)
 
 
@@ -181,6 +187,7 @@ def compile_and_findbugs(student_answer, testcode,
     else:
         fb_output = 'fb.out'
         subprocess.check_call(['java', '-jar', _findbugs, '-textui',
+                               '-exclude', 'fb_exclude_filter.xml',
                                '-output', fb_output, '.'])
         if os.path.exists(fb_output) and os.path.getsize(fb_output) != 0:
             # FB had something to criticize
@@ -283,3 +290,56 @@ Your code is out of spec - you were supposed to use
 ''' % enumb_const)
     else:
         print('Switch uses enum constants')
+
+
+def check_for_reference(student_answer, some_class):
+    if not student_answer.count(some_class):
+        raise CodeOutOfSpecException('''
+Your code may well execute...but:
+Your code is out of spec - it doesn't contains any reference to
+    %s :.
+''' % some_class)
+    else:
+        print('Ok reference to %s' % some_class)
+
+
+def check_for_no_reference(student_answer, no_such_class):
+    if student_answer.count(no_such_class):
+        raise CodeOutOfSpecException('''
+Your code may well execute...but:
+Your code is out of spec - it contains a reference to
+    %s :.
+''' % no_such_class)
+    else:
+        print('No reference to %s' % no_such_class)
+
+
+def check_for_interface(student_answer, interface):
+    if not student_answer.count('interface ' + interface):
+        raise CodeOutOfSpecException('''
+Your code may well execute...but:
+Your code is out of spec - it doesn't declare
+    interface %s :.
+''' % interface)
+    else:
+        print('Declares interface %s' % interface)
+
+
+def check_for_no_procedural_style_loops(student_answer):
+    if student_answer.count('for ' or 'while '):
+        raise CodeOutOfSpecException('''
+Your code may well execute...but:
+Your code is out of spec - it contains procedural style loops
+''')
+    else:
+        print('No procedural style loops')
+
+
+def check_for_functional_style_lambdas(student_answer):
+    if not student_answer.count('->'):
+        raise CodeOutOfSpecException('''
+Your code may well execute...but:
+Your code is out of spec - it doesn't contain functional style lambdas
+''')
+    else:
+        print('Uses functional style lambdas')
