@@ -86,11 +86,18 @@ def _add_cruft(student_answer, import_static=None):
     return """
 package %s;
 
+import java.awt.Color;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
+import javax.swing.*;
 
 // if you need a static import, it'll be put here
 %s
