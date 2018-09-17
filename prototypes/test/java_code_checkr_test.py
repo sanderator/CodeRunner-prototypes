@@ -9,6 +9,7 @@ sys.path.append(os.path.join(sys.path[0], '../src'))
 from java_code_checkr import check_for_author
 from java_code_checkr import check_for_reference
 from java_code_checkr import check_for_no_reference
+from java_code_checkr import check_for_static_method
 from java_code_checkr import check_for_interface
 from java_code_checkr import CodeOutOfSpecException
 
@@ -33,7 +34,7 @@ public class Awesome {
             (self.student_answer, self.existing_author))
 
     def test_additional_author(self):
-        student_answer = '''
+        self.student_answer = '''
 /**
  * Does something awesome.
  * @author J. Random Author
@@ -44,18 +45,18 @@ public class Awesome {
 }
 '''
         self.assertEqual(check_for_author(
-            student_answer, self.existing_author), None)
+            self.student_answer, self.existing_author), None)
 
     def test_reference(self):
         '''Checks that student code contain a
         reference to a given class.
         '''
-        student_answer = '''
+        self.student_answer = '''
 public class Awesome {
     private SomeClass sc;
 }
 '''
-        self.assertEqual(check_for_reference(student_answer,
+        self.assertEqual(check_for_reference(self.student_answer,
             'SomeClass'), None)
 
     def test_reference_KO(self):
@@ -78,7 +79,7 @@ public class Awesome {
         '''Checks that student code does not contain any
         reference to a given class.
         '''
-        student_answer = '''
+        self.student_answer = '''
 public class Awesome {
     private SomeClass sc;
 }
@@ -88,16 +89,66 @@ public class Awesome {
             check_for_reference,
             self.student_answer, 'SomeClass')
 
+
+    def test_for_static_method(self):
+        self.student_answer = '''
+class Foo {
+    static void foo() {
+        // stuff
+    }
+}
+'''
+        self.assertRaises(
+            CodeOutOfSpecException,
+            check_for_static_method,
+            self.student_answer
+            )
+
+
+    def test_for_no_static_method(self):
+        self.student_answer = '''
+class Foo {
+    private static final String NAME = "Fred";
+
+    void foo() {
+        // stuff
+    }
+}
+'''
+        self.assertEqual(
+            check_for_static_method(self.student_answer),
+            None)
+
+
+    def test_for_static_main_method(self):
+        self.student_answer = '''
+class Foo {
+    private static final String NAME = "Fred";
+
+    void foo() {
+        // stuff
+    }
+
+    public static void main(String... args) {
+        // stuff
+    }
+}
+'''
+        self.assertEqual(
+            check_for_static_method(self.student_answer),
+            None)
+
+
     def test_interface(self):
         '''Checks that student code declares interface.
         '''
         interface = 'SomethingAble'
-        student_answer = '''
+        self.student_answer = '''
 public interface SomethingAble {
     // rest of code
 }
 '''
-        self.assertEqual(check_for_interface(student_answer, interface),
+        self.assertEqual(check_for_interface(self.student_answer, interface),
             None)
 
 

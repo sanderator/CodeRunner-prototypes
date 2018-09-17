@@ -257,6 +257,22 @@ Your code is out of spec - you were supposed to define
         print('%s extends %s' % (subclass, superclass))
 
 
+def check_for_static_method(student_answer):
+    pattern = re.compile('''
+        static\s+   # keyword and spaces
+        (.*)        # other stuff, eg, return type, name
+        \(          # start of args
+        ''', re.VERBOSE)
+    match = pattern.search(student_answer)
+    if match and not 'main' in match.group(1):
+        raise CodeOutOfSpecException('''
+Your code may well execute...but:
+Your code is out of spec - your methods shouldn't be static.
+''')
+    else:
+        print('No static methods')
+
+
 def check_for_enum(student_answer, enumb):
     '''Verifies that the appropriate enum is declared.
     If that's not the case, then raises an error and
