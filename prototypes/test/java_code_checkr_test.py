@@ -86,7 +86,7 @@ public class Awesome {
 '''
         self.assertRaises(
             CodeOutOfSpecException,
-            check_for_reference,
+            check_for_no_reference,
             self.student_answer, 'SomeClass')
 
 
