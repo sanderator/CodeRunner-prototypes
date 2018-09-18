@@ -95,8 +95,8 @@ import java.awt.Image;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
+//import java.util.function.*;
+//import java.util.stream.*;
 import javax.swing.*;
 
 // if you need a static import, it'll be put here
@@ -257,14 +257,20 @@ Your code is out of spec - you were supposed to define
         print('%s extends %s' % (subclass, superclass))
 
 
-def check_for_static_method(student_answer):
+def check_for_no_static_method(student_answer):
+    '''Checks that code contains no static method,
+    except for the main method of course.
+    If that's not the case, then raises an error and
+    stops further testing.
+    '''
     pattern = re.compile('''
-        static\s+   # keyword and spaces
+        static      # keyword
         (.*)        # other stuff, eg, return type, name
+        (?<!main)    # but not main method
         \(          # start of args
         ''', re.VERBOSE)
     match = pattern.search(student_answer)
-    if match and not 'main' in match.group(1):
+    if match:
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
 Your code is out of spec - your methods shouldn't be static.
