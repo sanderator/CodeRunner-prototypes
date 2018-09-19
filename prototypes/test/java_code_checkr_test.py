@@ -9,6 +9,7 @@ sys.path.append(os.path.join(sys.path[0], '../src'))
 from java_code_checkr import check_for_author
 from java_code_checkr import check_for_reference
 from java_code_checkr import check_for_no_reference
+from java_code_checkr import check_for_public
 from java_code_checkr import check_for_static_method
 from java_code_checkr import check_for_interface
 from java_code_checkr import CodeOutOfSpecException
@@ -136,6 +137,70 @@ class Foo {
 '''
         self.assertEqual(
             check_for_static_method(self.student_answer),
+            None)
+
+
+    def test_for_public_attribute(self):
+        self.student_answer = '''
+class Foo {
+    public String fred;
+
+    // stuff
+}
+'''
+        self.assertRaises(
+            CodeOutOfSpecException,
+            check_for_public,
+            self.student_answer
+            )
+
+
+    def test_for_public_method(self):
+        self.student_answer = '''
+class Foo {
+    public void foo() {
+        // stuff
+    }
+}
+'''
+        self.assertRaises(
+            CodeOutOfSpecException,
+            check_for_public,
+            self.student_answer
+            )
+
+
+    def test_for_nothing_public(self):
+        self.student_answer = '''
+class Foo {
+    private String name = "Fred";
+
+    void foo() {
+        // stuff
+    }
+}
+'''
+        self.assertEqual(
+            check_for_public(self.student_answer),
+            None)
+
+
+    def test_for_public_main_method(self):
+        self.student_answer = '''
+class Foo {
+    private String NAME = "Fred";
+
+    void foo() {
+        // stuff
+    }
+
+    public static void main(String... args) {
+        // stuff
+    }
+}
+'''
+        self.assertEqual(
+            check_for_public(self.student_answer),
             None)
 
 

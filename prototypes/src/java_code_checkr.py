@@ -257,7 +257,30 @@ Your code is out of spec - you were supposed to define
         print('%s extends %s' % (subclass, superclass))
 
 
-def check_for_no_static_method(student_answer):
+def check_for_public(student_answer):
+    '''Checks that code contains no public atribute on method,
+    except for the main method of course, and perhaps toString.
+    If that's not the case, then raises an error and
+    stops further testing.
+    '''
+    pattern = re.compile('''
+        public          # keyword
+        (.*)            # other stuff, eg, return type, name
+        (?<!main)       # but not the main method
+        (?<!toString)   # but not the toString method
+        [;(]            # attribute or method
+        ''', re.VERBOSE)
+    match = pattern.search(student_answer)
+    if match:
+        raise CodeOutOfSpecException('''
+Your code may well execute...but:
+Your code is out of spec - something declared public that shouldn't be.
+''')
+    else:
+        print("Nothing declared public that shouldn't be")
+
+
+def check_for_static_method(student_answer):
     '''Checks that code contains no static method,
     except for the main method of course.
     If that's not the case, then raises an error and
@@ -266,7 +289,7 @@ def check_for_no_static_method(student_answer):
     pattern = re.compile('''
         static      # keyword
         (.*)        # other stuff, eg, return type, name
-        (?<!main)    # but not main method
+        (?<!main)   # but not main method
         \(          # start of args
         ''', re.VERBOSE)
     match = pattern.search(student_answer)
@@ -276,7 +299,7 @@ Your code may well execute...but:
 Your code is out of spec - your methods shouldn't be static.
 ''')
     else:
-        print('No static methods')
+        print("No methods declared static that shouldn't be")
 
 
 def check_for_enum(student_answer, enumb):
