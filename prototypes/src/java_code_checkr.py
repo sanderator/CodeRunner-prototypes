@@ -95,8 +95,8 @@ import java.awt.Image;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-//import java.util.function.*;
-//import java.util.stream.*;
+import java.util.function.*;
+import java.util.stream.*;
 import javax.swing.*;
 
 // if you need a static import, it'll be put here
@@ -192,7 +192,8 @@ def compile_and_findbugs(student_answer, testcode,
         print("** Code doesn't compile - further testing aborted **",
               file=sys.stderr)
     else:
-        fb_output = 'fb.out'
+        # fb_output = '/tmp/fb.out'
+        fb_output = '/dev/null'
         subprocess.check_call(['java', '-jar', _findbugs, '-textui',
                                '-exclude', 'fb_exclude_filter.xml',
                                '-output', fb_output, '.'])
