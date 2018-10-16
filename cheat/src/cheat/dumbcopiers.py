@@ -12,106 +12,71 @@ import csv
    are removed. Also, if IGNORE_IDENTIFIERS is True, all non-keyword
    identifiers (roughly) are replaced by 'xxx' before comparison.
 
-   Richard Lobb, 22 August 2014.
+   @author: Richard Lobb, 22 August 2014.
+   @author: Peter Sander (usability mods)
 '''
 
 from collections import defaultdict
 import os
-from . import *
+from . import EXACT_COPIES_ONLY
+from . import IGNORE_IDENTIFIERS
+from . import LANGUAGE_EXTENSIONS
+from . import ONE_LINE_COMMENTS
+from . import MULTI_LINE_COMMENTS
+from . import KEYWORDS
+from . import HEADERS_LANG
 
-# _response = 'Réponse '
-# _question_num = 4
-# _email_address = 'Adresse de courriel'
-# _first_name = 'Prénom'
-# _surname = 'Nom'
 
-
-# CSV_FILE = 'sq3responses.csv'
-# QUESTION_NUM = _question_num
-EXACT_COPIES_ONLY = False
-IGNORE_IDENTIFIERS = True  # If true, all non-keyword identifiers are replaced by '###'
-LANGUAGE = 'python'
-
-# Remaining constants are not intended to be user-configured.
-
-# RESPONSE = _response + str(QUESTION_NUM)
-LANGUAGE_EXTENSIONS = {
-    'python': '.py',
-    'c'     : '.c',
-    'matlab': '.m'
-}
-
-ONE_LINE_COMMENTS = {
-    'python'    : '#[^\n]*',
-    'c'         : '//[^\n]*',
-    'matlab'    : '%[^\n]*'
-}
-
-MULTI_LINE_COMMENTS = {
-    'python'    : "'''.*?'''|\"\"\".*?\"\"\"",
-    'c'         : "/\*.*?\*/",
-    'matlab'    : "%{.*?}%"
-}
-
-# Keyword lists are incomplete but that doesn't matter in this context
-KEYWORDS = {
-    'python': ['def', 'for', 'if', 'while', 'class', 'return', 'and',
-                'pass', 'in', 'try', 'except', 'print', 'input',
-                'and', 'from', 'not', 'or', 'else', 'elif'],
-    'c'     : ['case', 'switch', 'if', 'for', 'while', 'struct',
-                'void', 'typedef', 'int', 'float', 'double', 'char',
-                'do', 'else', 'const', 'break', 'long', 'short',
-                'signed', 'include', 'define', 'return'],
-    'matlab' : ['break', 'case', 'catch', 'continue', 'for', 'function',
-                'if', 'return', 'switch', 'try', 'while', 'else']
-}
-
-LANGUAGE_EXT = LANGUAGE_EXTENSIONS[LANGUAGE]
-KEYWORD_PATTERN = '|'.join(KEYWORDS[LANGUAGE])
-ONE_LINE_COMMENT = ONE_LINE_COMMENTS[LANGUAGE]
-MULTI_LINE_COMMENT = MULTI_LINE_COMMENTS[LANGUAGE]
-IDENTIFIER = "\\b(?!(?:" + KEYWORD_PATTERN + ")\\b)[A-Za-z_][A-Za-z0-9_]*\\b"
+def setup(optionals):
+    language = optionals['code_language']
+    keyword_pattern = '|'.join(KEYWORDS[language])
+    language_stuff = {
+        'LANGUAGE_EXT': LANGUAGE_EXTENSIONS[language],
+        'ONE_LINE_COMMENT': ONE_LINE_COMMENTS[language],
+        'MULTI_LINE_COMMENT': MULTI_LINE_COMMENTS[language],
+        'IDENTIFIER': "\\b(?!(?:" + keyword_pattern + ")\\b)[A-Za-z_][A-Za-z0-9_]*\\b"
+    }
+    return language_stuff
 
 
 #================ Now we begin ===================
-def clean(s):
+def clean(s, language_stuff, optionals):
     '''
     Delete comments and blanklines from s.
     Replace all identifiers with 'xxx', collapse all
     whitespace.
     '''
-    if not EXACT_COPIES_ONLY:
-        s = re.sub(ONE_LINE_COMMENT, '', s)
-        s = re.sub(MULTI_LINE_COMMENT, '', s, flags=re.DOTALL)
-        if IGNORE_IDENTIFIERS:
-            s = re.sub(IDENTIFIER, 'xxx', s)
+    if not optionals['exact_copies_only']:
+        s = re.sub(language_stuff['ONE_LINE_COMMENT'], '', s)
+        s = re.sub(language_stuff['MULTI_LINE_COMMENT'], '', s, flags=re.DOTALL)
+        if optionals['replace_identifiers']:
+            s = re.sub(language_stuff['IDENTIFIER'], 'xxx', s)
         s = re.sub('[ \t\n]+', '', s, flags=re.DOTALL)
     return s
 
 def main(optionals):
-    headers = headers_lang[optionals['interface']]
-    QUESTION_NUM = optionals['question']
-    RESPONSE = '%s %s' % (headers['response'], QUESTION_NUM)
+    language_stuff = setup(optionals)
+    input_file = optionals['input_file']
+    output_dir = '%s/SubmissionsQ%s' % (optionals['output_dir'], optionals['question'])
+    headers = HEADERS_LANG[optionals['moodle_language']]
     first_name = headers['first_name']
     surname = headers['surname']
+    response = headers['response'] + ' ' + optionals['question']
     email_address = headers['email']
-    print('arg choices: ')
-    [print(k, optionals[k]) for k in optionals.keys()]
-    CSV_FILE = optionals['file']
-    f = open(CSV_FILE, encoding='utf-8-sig')
-    print("COPIES: File '{}', Question {}\n".format(CSV_FILE, QUESTION_NUM))
+    f = open(input_file, encoding='utf-8-sig')
+    print("COPIES: File '{}', Question {}\n".
+            format(input_file, optionals['question']))
     rdr = csv.DictReader(f)
     names = {}
     progs = {}
-    directory = 'SubmissionsQ' + str(QUESTION_NUM)
-    if not os.path.isdir(directory):
-        os.mkdir(directory)
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
     for row in rdr:
         stud = row[email_address].split('@')[0]
         names[stud] = row[first_name] + ' ' + row[surname]
-        raw_code = row[RESPONSE]
-        open(directory + '/' + stud + LANGUAGE_EXT, 'w').write(raw_code)
-        code = clean(raw_code)
+        raw_code = row[response]
+        open(output_dir + '/' + stud + language_stuff['LANGUAGE_EXT'], 'w').write(raw_code)
+        code = clean(raw_code, language_stuff, optionals)
         progs[stud] = code
 
     studs = list(progs)
