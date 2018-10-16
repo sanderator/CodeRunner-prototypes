@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import re
 import csv
 '''Program to check for nearly-exact copies.
@@ -15,16 +17,24 @@ import csv
 
 from collections import defaultdict
 import os
+from . import *
 
-CSV_FILE = 'sq3responses.csv'
-QUESTION_NUM = 5
+# _response = 'Réponse '
+# _question_num = 4
+# _email_address = 'Adresse de courriel'
+# _first_name = 'Prénom'
+# _surname = 'Nom'
+
+
+# CSV_FILE = 'sq3responses.csv'
+# QUESTION_NUM = _question_num
 EXACT_COPIES_ONLY = False
 IGNORE_IDENTIFIERS = True  # If true, all non-keyword identifiers are replaced by '###'
 LANGUAGE = 'python'
 
 # Remaining constants are not intended to be user-configured.
 
-RESPONSE = 'Response ' + str(QUESTION_NUM)
+# RESPONSE = _response + str(QUESTION_NUM)
 LANGUAGE_EXTENSIONS = {
     'python': '.py',
     'c'     : '.c',
@@ -78,8 +88,16 @@ def clean(s):
         s = re.sub('[ \t\n]+', '', s, flags=re.DOTALL)
     return s
 
-
-def main():
+def main(optionals):
+    headers = headers_lang[optionals['interface']]
+    QUESTION_NUM = optionals['question']
+    RESPONSE = '%s %s' % (headers['response'], QUESTION_NUM)
+    first_name = headers['first_name']
+    surname = headers['surname']
+    email_address = headers['email']
+    print('arg choices: ')
+    [print(k, optionals[k]) for k in optionals.keys()]
+    CSV_FILE = optionals['file']
     f = open(CSV_FILE, encoding='utf-8-sig')
     print("COPIES: File '{}', Question {}\n".format(CSV_FILE, QUESTION_NUM))
     rdr = csv.DictReader(f)
@@ -89,8 +107,8 @@ def main():
     if not os.path.isdir(directory):
         os.mkdir(directory)
     for row in rdr:
-        stud = row['Email address'].split('@')[0]
-        names[stud] = row['First name'] + ' ' + row['Surname']
+        stud = row[email_address].split('@')[0]
+        names[stud] = row[first_name] + ' ' + row[surname]
         raw_code = row[RESPONSE]
         open(directory + '/' + stud + LANGUAGE_EXT, 'w').write(raw_code)
         code = clean(raw_code)
@@ -119,15 +137,6 @@ def main():
     email_list = []
     for stud in sorted(known):
         print(' ', stud, names[stud])
-        email_list.append(stud + "@uclive.ac.nz")
+        email_list.append(stud + "@etu.unice.fr")
     print()
     print("Email list: ", ",".join(email_list))
-
-
-main()
-
-
-
-
-
-
