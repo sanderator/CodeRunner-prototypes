@@ -192,8 +192,7 @@ def compile_and_findbugs(student_answer, testcode,
         print("** Code doesn't compile - further testing aborted **",
               file=sys.stderr)
     else:
-        # fb_output = '/tmp/fb.out'
-        fb_output = '/dev/null'
+        fb_output = 'fb.out'
         subprocess.check_call(['java', '-jar', _findbugs, '-textui',
                                '-exclude', 'fb_exclude_filter.xml',
                                '-output', fb_output, '.'])
@@ -379,7 +378,7 @@ Your code is out of spec - it doesn't declare
 
 
 def check_for_no_procedural_style_loops(student_answer):
-    if student_answer.count('for ' or 'while '):
+    if student_answer.count('for ' or 'for (' or 'for(' or 'while '):
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
 Your code is out of spec - it contains procedural style loops

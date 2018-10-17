@@ -9,6 +9,6 @@ build/
 *.pyc
 __pycache__/
 .pydevproject
-*.sublime-*
+*.sublime-workspace
 .settings
 *.tgz
