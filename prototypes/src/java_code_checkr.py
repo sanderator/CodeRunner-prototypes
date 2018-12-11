@@ -56,6 +56,9 @@ _testfile = 'Tester.java'
 # to be adapted to wherever your findbugs stuff lives
 _findbugs = '/opt/findbugs-3.0.1/lib/findbugs.jar'
 
+# to be adapted to wherever your junit stuff lives
+_junit = '/usr/share/java/junit-platform-console-standalone.jar'
+
 
 def _remove_cruft(student_answer):
     '''Filters the student answer, mostly to get rid of expressions
@@ -98,6 +101,11 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 import javax.swing.*;
+// just the bare JUnit5 essentials
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // if you need a static import, it'll be put here
 %s
@@ -174,10 +182,12 @@ def compile_and_run(student_answer, testcode,
     student_answer = _assemble_student_answer(student_answer, import_static)
     support_files = _assemble_support_files(ncoding)
     _assemble_tester(student_answer, testcode, support_files, xception)
-    if (subprocess.call(
-            ['javac', '-d', '.', '-encoding', ncoding, _testfile]) or
-            subprocess.call(['java', _testclass])):
+    if subprocess.call(['javac', '-d', '.', '-encoding', ncoding,
+                        '-cp', _junit, _testfile]):
+        # code didn't compile
         print('** Further testing aborted **', file=sys.stderr)
+    else:
+        subprocess.call(['java', _testclass])
 
 
 def compile_and_findbugs(student_answer, testcode,
@@ -187,7 +197,8 @@ def compile_and_findbugs(student_answer, testcode,
     student_answer = _assemble_student_answer(student_answer, import_static)
     support_files = _assemble_support_files(ncoding)
     _assemble_tester(student_answer, testcode, support_files, xception)
-    if subprocess.call(['javac', '-d', '.', '-encoding', ncoding, _testfile]):
+    if subprocess.call(['javac', '-d', '.', '-encoding', ncoding,
+                        '-cp', _junit, _testfile]):
         # code didn't compile
         print("** Code doesn't compile - further testing aborted **",
               file=sys.stderr)
@@ -202,6 +213,32 @@ def compile_and_findbugs(student_answer, testcode,
                 print(fbo.read())
         else:
             print('Code looks clean')
+
+
+def compile_and_junit(student_answer, testcode,
+                      import_static=None, xception=None, ncoding='utf-8'):
+    '''Assembles code (student answer, support files, tester class.
+    Then compiles and (hopefully) runs the tester code.
+    '''
+    student_answer = _assemble_student_answer(student_answer, import_static)
+    support_files = _assemble_support_files(ncoding)
+    _assemble_tester(student_answer, testcode, support_files, xception)
+    if subprocess.call(['javac', '-d', '.', '-cp', _junit,
+                        '-encoding', ncoding, _testfile]):
+        # didn't compile
+        print("** Code doesn't compile - further testing aborted **",
+              file=sys.stderr)
+    else:
+        result = subprocess.call(['java', '-jar', _junit, '-cp', '.',
+                                  '--fail-if-no-tests',
+                                  '--scan-classpath',
+                                  '--details=none'])
+        if result == 1:
+            print('** Some JUnit tests failed **')
+        elif result == 2:
+            print("** Couldn't find any JUnit tests to run **")
+        else:
+            print('JUnit tests passed')
 
 
 '''Checks whether student-submitted Java code conforms to given
@@ -395,3 +432,13 @@ Your code is out of spec - it doesn't contain functional style lambdas
 ''')
     else:
         print('Uses functional style lambdas')
+
+
+def check_for_no_functional_style_lambdas(student_answer):
+    if student_answer.count('->'):
+        raise CodeOutOfSpecException('''
+Your code may well execute...but:
+Your code is out of spec - it contains functional style lambdas
+''')
+    else:
+        print('Uses no functional style lambdas')
