@@ -382,6 +382,11 @@ Your code is out of spec - you were supposed to use
 
 
 def check_for_reference(student_answer, some_class):
+    '''Verifies that the code contains a reference
+    to the given class.
+    If that's not the case, then raises an error
+    and stops further testing.
+    '''
     if not student_answer.count(some_class):
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
@@ -393,6 +398,11 @@ Your code is out of spec - it doesn't contains any reference to
 
 
 def check_for_no_reference(student_answer, no_such_class):
+    '''Verifies that the code does not contain any reference
+    to the given class.
+    If that's not the case, then raises an error
+    and stops further testing.
+    '''
     if student_answer.count(no_such_class):
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
@@ -404,6 +414,11 @@ Your code is out of spec - it contains a reference to
 
 
 def check_for_interface(student_answer, interface):
+    '''Verifies that the code contains a reference
+    to the given class.
+    If that's not the case, then raises an error
+    and stops further testing.
+    '''
     if not student_answer.count('interface ' + interface):
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
@@ -415,6 +430,11 @@ Your code is out of spec - it doesn't declare
 
 
 def check_for_no_procedural_style_loops(student_answer):
+    '''Verifies that the code contains no procedural 
+    style loops, eg for.
+    If that's not the case, then raises an error 
+    and stops further testing.
+    '''
     if student_answer.count('for ' or 'for (' or 'for(' or 'while '):
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
@@ -425,6 +445,11 @@ Your code is out of spec - it contains procedural style loops
 
 
 def check_for_functional_style_lambdas(student_answer):
+    '''Verifies that the code contains some functional style
+    lambda, eg someCollection.forEach(e -> {}.
+    If that's not the case, then raises an error 
+    and stops further testing.
+    '''
     if not student_answer.count('->'):
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
@@ -435,6 +460,11 @@ Your code is out of spec - it doesn't contain functional style lambdas
 
 
 def check_for_no_functional_style_lambdas(student_answer):
+    '''Verifies that the code contains no functional style
+    lambdas.
+    If that's not the case, then raises an error 
+    and stops further testing.
+    '''
     if student_answer.count('->'):
         raise CodeOutOfSpecException('''
 Your code may well execute...but:
