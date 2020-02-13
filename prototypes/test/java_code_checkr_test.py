@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+'''Exercises (some of) the java_code_checkr.py functions.
+One day I'll add more tests...
+
+(cc) CC BY-NC 4.0 2016-2020 Peter Sander
+'''
+
 import os
 import os.path
 import sys

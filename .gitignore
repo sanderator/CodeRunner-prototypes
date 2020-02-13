@@ -1,6 +1,8 @@
 build/
 *.class
 .classpath
+coderunner.iml
+.idea
 *.jar
 .~lock*
 .MF/

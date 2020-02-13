@@ -27,7 +27,8 @@ Works (mostly) by:
   - currently called foobar (for sentimental reasons)
 - replacing import statements with import statement for
   generally-useful packages
-  - currently java.util.* and java.util.stream.*
+  - currently java.util.*, java.util.function.*, and java.util.stream.*.
+    And some others (see the code below)
 - adding an executable class with a main method to run the tests
   - currently foobar.Tester
 - smushing all code into a single .java file
@@ -39,7 +40,7 @@ Works (mostly) by:
 Limitations and works-by are sufficient for my current needs;
 I may gradually be adding additional stuff.
 
-(cc) CC BY-NC 4.0 2016 Peter Sander
+(cc) CC BY-NC 4.0 2016-2020 Peter Sander
 '''
 
 import os
@@ -57,6 +58,7 @@ _testfile = 'Tester.java'
 _findbugs = '/opt/findbugs-3.0.1/lib/findbugs.jar'
 
 # to be adapted to wherever your junit stuff lives
+# note that we're taling JUnit5 here
 _junit = '/usr/share/java/junit-platform-console-standalone.jar'
 
 
@@ -102,13 +104,18 @@ import java.util.function.*;
 import java.util.stream.*;
 import javax.swing.*;
 // just the bare JUnit5 essentials
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 // if you need a static import, it'll be put here
 %s
+// finally, the student-submitted code
 %s
 """ % (_package, import_static, student_answer)
 
@@ -253,11 +260,12 @@ class CodeOutOfSpecException(Exception):
 
 
 def check_for_author(student_answer, existing_author=None):
-    '''Checks for an author tag in the javadoc comments. With an existing
-    author argument, checks that another author has been added.
+    '''Checks for an @author tag in the javadoc comments.
+    With an existing author argument, checks that another author
+    has been added.
     This is in case the student was to modify existing code with an
     existing author.
-    If there's no additional author, then raises an error and
+    If there's no additional author, then raises an exception and
     stops further testing.
     '''
     classes = student_answer.count('class')
@@ -275,7 +283,7 @@ Your code is out of spec - doesn't credit all authors.
 
 def check_for_extends(student_answer, subclass, superclass):
     '''Checks for 'class subclass extends superclass'.
-    If that's not the case, then raises an error and
+    If that's not the case, then raises an exception and
     stops further testing.
     '''
     pattern = re.compile('''
@@ -297,7 +305,7 @@ Your code is out of spec - you were supposed to define
 def check_for_public(student_answer):
     '''Checks that code contains no public atribute on method,
     except for the main method of course, and perhaps toString.
-    If that's not the case, then raises an error and
+    If that's not the case, then raises an exception and
     stops further testing.
     '''
     pattern = re.compile('''
@@ -320,7 +328,7 @@ Your code is out of spec - something declared public that shouldn't be.
 def check_for_static_method(student_answer):
     '''Checks that code contains no static method,
     except for the main method of course.
-    If that's not the case, then raises an error and
+    If that's not the case, then raises an exception and
     stops further testing.
     '''
     pattern = re.compile('''
@@ -341,7 +349,7 @@ Your code is out of spec - your methods shouldn't be static.
 
 def check_for_enum(student_answer, enumb):
     '''Verifies that the appropriate enum is declared.
-    If that's not the case, then raises an error and
+    If that's not the case, then raises an exception and
     stops further testing.
     '''
     pattern = re.compile('''
@@ -362,7 +370,7 @@ Your code is out of spec - you were supposed to define
 def check_for_enum_in_switch(student_answer, enumb_const):
     '''Verifies that the appropriate enum constant is used in a switch
     case statement.
-    If that's not the case, then raises an error and
+    If that's not the case, then raises an exception and
     stops further testing.
     '''
     pattern = re.compile('''
@@ -384,7 +392,7 @@ Your code is out of spec - you were supposed to use
 def check_for_reference(student_answer, some_class):
     '''Verifies that the code contains a reference
     to the given class.
-    If that's not the case, then raises an error
+    If that's not the case, then raises an exception
     and stops further testing.
     '''
     if not student_answer.count(some_class):
@@ -400,7 +408,7 @@ Your code is out of spec - it doesn't contains any reference to
 def check_for_no_reference(student_answer, no_such_class):
     '''Verifies that the code does not contain any reference
     to the given class.
-    If that's not the case, then raises an error
+    If that's not the case, then raises an exception
     and stops further testing.
     '''
     if student_answer.count(no_such_class):
@@ -416,7 +424,7 @@ Your code is out of spec - it contains a reference to
 def check_for_interface(student_answer, interface):
     '''Verifies that the code contains a reference
     to the given class.
-    If that's not the case, then raises an error
+    If that's not the case, then raises an exception
     and stops further testing.
     '''
     if not student_answer.count('interface ' + interface):
@@ -432,7 +440,7 @@ Your code is out of spec - it doesn't declare
 def check_for_no_procedural_style_loops(student_answer):
     '''Verifies that the code contains no procedural 
     style loops, eg for.
-    If that's not the case, then raises an error 
+    If that's not the case, then raises an exception
     and stops further testing.
     '''
     if student_answer.count('for ' or 'for (' or 'for(' or 'while '):
@@ -447,7 +455,7 @@ Your code is out of spec - it contains procedural style loops
 def check_for_functional_style_lambdas(student_answer):
     '''Verifies that the code contains some functional style
     lambda, eg someCollection.forEach(e -> {}.
-    If that's not the case, then raises an error 
+    If that's not the case, then raises an exception
     and stops further testing.
     '''
     if not student_answer.count('->'):
@@ -462,7 +470,7 @@ Your code is out of spec - it doesn't contain functional style lambdas
 def check_for_no_functional_style_lambdas(student_answer):
     '''Verifies that the code contains no functional style
     lambdas.
-    If that's not the case, then raises an error 
+    If that's not the case, then raises an exception
     and stops further testing.
     '''
     if student_answer.count('->'):
