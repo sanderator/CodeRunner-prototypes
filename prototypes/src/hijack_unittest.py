@@ -16,7 +16,7 @@ import unittest
 # find all tests in this module
 import __main__
 
-def diddle():
+def hijack():
     suite = unittest.TestLoader().loadTestsFromModule(__main__)
     with io.StringIO() as buf:
         # run the tests
