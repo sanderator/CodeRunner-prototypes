@@ -28,40 +28,47 @@ import sys
 _testfile = 'tester.py'
 
 
-def _remove_cruft(student_answer):
+def _remove_cruft(student_answer, unittesting=False):
     '''Filters the student answer, mostly to get rid of expressions
     and keywords that would be incompatible with all the code being
     smushed into one single file.
     '''
-    num_main_calls = student_answer.count("if __name__ == '__main__'")
-    return student_answer \
+    filtered_student_answer = student_answer \
         .replace('import ', '#import ') \
-        .replace('from ', '#from ') \
-        .replace("if __name__ == '__main__'",
-                 "if __name__ == '__NOT_MAIN__'",
-                 num_main_calls - 1) \
-        .replace('''if __name__ == '__main__':
+        .replace('from ', '#from ')
+    if unittesting:
+        num_main_calls = student_answer.count("if __name__ == '__main__'")
+        filtered_student_answer = filtered_student_answer \
+            .replace("if __name__ == '__main__'",
+                     "if __name__ == '__NOT_MAIN__'",
+                     num_main_calls - 1) \
+            .replace('''if __name__ == '__main__':
     main()
 ''', '''if __name__ == '__main__':
     hijack()
 ''')
+    else:
+        filtered_student_answer = filtered_student_answer \
+        .replace("if __name__ == '__main__'",
+                 "if __name__ == '__NOT_MAIN__'")
+    return filtered_student_answer
 
 
-def _add_cruft(student_answer, import_static=None):
-    '''Adds imports needed for the single code file.
+def _add_cruft(student_answer, unittesting=False):
+    '''Adds imports if needed for unittesting.
     '''
     return f'''
 import unittest
 from hijack_unittest import hijack
 
 {student_answer}
-'''
+''' if unittesting else student_answer
 
 
-def _assemble_student_answer(student_answer, import_static=None):
+def _assemble_student_answer(student_answer, unittesting=False):
     '''Removes 'unneeded' expressions and adds necessary expressions.
     '''
-    return _add_cruft(_remove_cruft(student_answer), import_static)
+    return _add_cruft(_remove_cruft(student_answer, unittesting), unittesting)
 
 
 def _assemble_support_files(ncoding='utf-8'):
@@ -75,8 +82,7 @@ def _assemble_support_files(ncoding='utf-8'):
     return _remove_cruft(support_files)
 
 
-def _assemble_tester(student_answer, testcode, support_files,
-                     xception=None, ncoding='utf-8'):
+def _assemble_tester(student_answer, testcode, support_files, ncoding='utf-8'):
     '''Smushes student answer and support files together with an
     executable tester class and writes everything out into one file.
     '''
@@ -91,14 +97,13 @@ def _assemble_tester(student_answer, testcode, support_files,
         print(tester, file=f)
 
 
-def interpret(student_answer, testcode,
-                    import_static=None, xception=None, ncoding='utf-8'):
+def interpret(student_answer, testcode, unittesting=False, ncoding='utf-8'):
     '''Assembles code (student answer, support files, tester class.
     Then runs the tester code.
     '''
-    student_answer = _assemble_student_answer(student_answer, import_static)
+    student_answer = _assemble_student_answer(student_answer, unittesting)
     support_files = _assemble_support_files(ncoding)
-    _assemble_tester(student_answer, testcode, support_files, xception)
+    _assemble_tester(student_answer, testcode, support_files)
     if subprocess.call(['python3', _testfile]):
         # code didn't compile
         print('** Further testing aborted **', file=sys.stderr)
